@@ -54,7 +54,8 @@ def euclidean_metric(a, b):
 
 def entropy(features):
     batch_size = features.size(0)
-    return torch.mul(features, torch.log(features)).sum() * (1.0 / batch_size)
+    return torch.mul(
+        features, torch.log(features +1e-6)).sum() * (1.0 / batch_size)
 
 
 class Timer():
