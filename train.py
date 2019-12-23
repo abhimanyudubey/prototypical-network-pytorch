@@ -8,7 +8,9 @@ from torch.utils.data import DataLoader
 from mini_imagenet import MiniImageNet
 from samplers import CategoriesSampler
 from convnet import Convnet
-from utils import pprint, set_gpu, ensure_path, Averager, Timer, count_acc, euclidean_metric
+from utils import\
+    pprint, set_gpu, ensure_path, Averager, Timer, count_acc,\
+    euclidean_metric, entropy
 
 
 if __name__ == '__main__':
@@ -21,6 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--test-way', type=int, default=5)
     parser.add_argument('--save-path', default='./save/proto-1')
     parser.add_argument('--gpu', default='0')
+    parser.add_argument('--lamb', default=0.1)
     args = parser.parse_args()
     pprint(vars(args))
 
@@ -40,13 +43,13 @@ if __name__ == '__main__':
                             num_workers=8, pin_memory=True)
 
     model = Convnet().cuda()
-    
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     def save_model(name):
         torch.save(model.state_dict(), osp.join(args.save_path, name + '.pth'))
-    
+
     trlog = {}
     trlog['args'] = vars(args)
     trlog['train_loss'] = []
@@ -77,7 +80,8 @@ if __name__ == '__main__':
             label = label.type(torch.cuda.LongTensor)
 
             logits = euclidean_metric(model(data_query), proto)
-            loss = F.cross_entropy(logits, label)
+            loss = F.cross_entropy(logits, label) +\
+                args.lamb*(entropy(logits))
             acc = count_acc(logits, label)
             print('epoch {}, train {}/{}, loss={:.4f} acc={:.4f}'
                   .format(epoch, i, len(train_loader), loss.item(), acc))
@@ -88,7 +92,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            
+
             proto = None; logits = None; loss = None
 
         tl = tl.item()
@@ -116,7 +120,7 @@ if __name__ == '__main__':
 
             vl.add(loss.item())
             va.add(acc)
-            
+
             proto = None; logits = None; loss = None
 
         vl = vl.item()
@@ -140,4 +144,3 @@ if __name__ == '__main__':
             save_model('epoch-{}'.format(epoch))
 
         print('ETA:{}/{}'.format(timer.measure(), timer.measure(epoch / args.max_epoch)))
-

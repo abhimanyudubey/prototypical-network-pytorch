@@ -52,6 +52,11 @@ def euclidean_metric(a, b):
     return logits
 
 
+def entropy(features):
+    batch_size = features.size(0)
+    return torch.mul(features, torch.log(features)).sum() * (1.0 / batch_size)
+
+
 class Timer():
 
     def __init__(self):
@@ -66,11 +71,13 @@ class Timer():
             return '{}m'.format(round(x / 60))
         return '{}s'.format(x)
 
+
 _utils_pp = pprint.PrettyPrinter()
+
+
 def pprint(x):
     _utils_pp.pprint(x)
 
 
 def l2_loss(pred, label):
     return ((pred - label)**2).sum() / len(pred) / 2
-
