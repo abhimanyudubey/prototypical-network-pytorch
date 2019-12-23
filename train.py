@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
             logits = euclidean_metric(model(data_query), proto)
             loss = F.cross_entropy(logits, label) +\
-                args.lamb*(entropy(logits))
+                args.lamb*(entropy(F.softmax(logits, dim=1)))
             acc = count_acc(logits, label)
             print('epoch {}, train {}/{}, loss={:.4f} acc={:.4f}'
                   .format(epoch, i, len(train_loader), loss.item(), acc))
