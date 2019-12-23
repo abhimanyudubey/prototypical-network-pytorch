@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--test-way', type=int, default=5)
     parser.add_argument('--save-path', default='./save/proto-1')
     parser.add_argument('--gpu', default='0')
-    parser.add_argument('--lamb', default=0.1)
+    parser.add_argument('--lamb', default=0.1, type=float)
     args = parser.parse_args()
     pprint(vars(args))
 
