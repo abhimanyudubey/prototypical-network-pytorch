@@ -10,7 +10,7 @@ from samplers import CategoriesSampler
 from convnet import Convnet
 from utils import\
     pprint, set_gpu, ensure_path, Averager, Timer, count_acc,\
-    euclidean_metric, entropy
+    euclidean_metric, entropy, gaussian
 
 
 if __name__ == '__main__':
@@ -24,6 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('--save-path', default='./save/proto-1')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--lamb', default=0.1, type=float)
+    parser.add_argument('--noise', default=0.1, type=float)
+
     args = parser.parse_args()
     pprint(vars(args))
 
@@ -76,6 +78,8 @@ if __name__ == '__main__':
             proto = model(data_shot)
             proto = proto.reshape(args.shot, args.train_way, -1).mean(dim=0)
 
+            proto = gaussian(proto, 0, args.noise)
+
             label = torch.arange(args.train_way).repeat(args.query)
             label = label.type(torch.cuda.LongTensor)
 
@@ -93,7 +97,9 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
 
-            proto = None; logits = None; loss = None
+            proto = None
+            logits = None
+            loss = None
 
         tl = tl.item()
         ta = ta.item()
@@ -104,12 +110,13 @@ if __name__ == '__main__':
         va = Averager()
 
         for i, batch in enumerate(val_loader, 1):
-            data, _ = [_.cuda() for _ in batch]
+            data, _ = [x.cuda() for x in batch]
             p = args.shot * args.test_way
             data_shot, data_query = data[:p], data[p:]
 
             proto = model(data_shot)
             proto = proto.reshape(args.shot, args.test_way, -1).mean(dim=0)
+            proto = gaussian(proto, 0, args.noise)
 
             label = torch.arange(args.test_way).repeat(args.query)
             label = label.type(torch.cuda.LongTensor)
@@ -121,7 +128,9 @@ if __name__ == '__main__':
             vl.add(loss.item())
             va.add(acc)
 
-            proto = None; logits = None; loss = None
+            proto = None
+            logits = None
+            loss = None
 
         vl = vl.item()
         va = va.item()

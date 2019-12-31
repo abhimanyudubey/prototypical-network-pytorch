@@ -52,6 +52,12 @@ def euclidean_metric(a, b):
     return logits
 
 
+def gaussian(ins, mean, stddev):
+    noise = torch.Tensor(
+        ins.data.new(ins.size()).normal_(mean, stddev))
+    return ins + noise
+
+
 def entropy(features):
     batch_size = features.size(0)
     return torch.mul(
