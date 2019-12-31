@@ -53,8 +53,7 @@ def euclidean_metric(a, b):
 
 
 def gaussian(ins, mean, stddev):
-    noise = torch.Tensor(
-        ins.data.new(ins.size()).normal_(mean, stddev))
+    noise = torch.randn(ins.size())*stddev + mean
     return ins + noise
 
 
