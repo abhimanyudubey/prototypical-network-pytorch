@@ -52,8 +52,10 @@ def euclidean_metric(a, b):
     return logits
 
 
-def gaussian(ins, mean, stddev):
+def gaussian(ins, mean, stddev, device='cuda'):
     noise = torch.randn(ins.size())*stddev + mean
+    if device=='cuda':
+        noise = noise.cuda()
     return ins + noise
 
 
