@@ -77,8 +77,9 @@ if __name__ == '__main__':
 
             proto = model(data_shot)
             print(proto.shape)
-            proto = proto.reshape(args.shot, args.train_way, -1).mean(dim=0)
+            proto = proto.reshape(args.shot, args.train_way, -1)
             print(proto.shape)
+            proto = proto.mean(dim=0)
 
             proto = gaussian(proto, 0, args.noise)
 
