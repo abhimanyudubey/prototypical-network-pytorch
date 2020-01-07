@@ -76,7 +76,7 @@ if __name__ == '__main__':
             data_shot, data_query = data[:p], data[p:]
 
             proto = model(data_shot)
-            print(proto.shape())
+            print(proto.shape)
             proto = proto.reshape(args.shot, args.train_way, -1).mean(dim=0)
 
             proto = gaussian(proto, 0, args.noise)
